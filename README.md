@@ -1,154 +1,144 @@
-# TP Docker – Application Flask
+# TP Docker
 
-## 1. Présentation du projet
+# Partie 1 : Manipulation de base de Docker
 
-Ce projet consiste à créer une application web avec Flask et à la conteneuriser avec Docker.
+Dans cette première partie, j'ai découvert les principales commandes Docker permettant de manipuler les images et les conteneurs.
 
-## 2. Structure du projet
+J'ai notamment utilisé les commandes suivantes :
 
-```text
-TP_docker/
-├── .gitignore
-├── README.md
-└── Exercice/
-    ├── app.py
-    ├── requirements.txt
-    └── Dockerfile
-```
+- `docker --version` pour vérifier l'installation.
+- `docker images` pour afficher les images disponibles.
+- `docker pull hello-world` pour récupérer une image.
+- `docker run hello-world` pour lancer un conteneur.
+- `docker ps` et `docker ps -a` pour consulter les conteneurs.
 
-## 3. Technologies utilisées
+Ces manipulations m'ont permis de comprendre le fonctionnement de base de Docker et la différence entre une image et un conteneur.
 
-- Python
-- Flask
-- Docker
-- Git et GitHub
+---
 
-## 4. Construire l'image Docker
+# Partie 2 : Serveur web Nginx
 
-Depuis le dossier `Exercice`, exécuter :
+J'ai utilisé l'image officielle Nginx afin de lancer un serveur web dans un conteneur Docker.
+
+Le conteneur a été lancé avec le port 8080 de ma machine relié au port 80 du conteneur, ce qui permet d'accéder à la page Nginx depuis le navigateur à l'adresse :
+
+http://localhost:8080
+
+Cette partie m'a permis de comprendre comment rendre un service exécuté dans un conteneur accessible depuis ma machine.
+
+---
+
+# Partie 3 : Application Flask
+
+## Objectif
+
+J'ai créé une application web simple avec Flask et je l'ai exécutée dans un conteneur Docker.
+
+Les fichiers utilisés sont `app.py`, `requirements.txt` et `Dockerfile`.
+
+## Dockerfile
+
+J'ai utilisé une image `python:3.11-slim` pour construire l'application.
+
+Le Dockerfile permet d'installer les dépendances, de copier les fichiers nécessaires et de lancer l'application sur le port 5000.
+
+J'ai choisi une image slim afin de limiter la taille de l'image Docker.
+
+## Lancement de l'application
+
+L'image est construite avec :
 
 ```bash
 docker build -t flask-app .
 ```
 
-## 5. Lancer le conteneur
+Puis le conteneur est lancé avec :
 
 ```bash
 docker run -d -p 5000:5000 --name flask-container flask-app
 ```
 
-## 6. Tester l'application
-
-Ouvrir un navigateur à l'adresse :
+L'application est accessible à l'adresse :
 
 http://localhost:5000
 
-L'application affiche un message de bienvenue.
+---
 
-## 7. Arrêter le conteneur
+# Partie 4 : Docker Compose et MongoDB
+
+## Objectif
+
+J'ai ensuite modifié mon application Flask afin de pouvoir la connecter à une base de données MongoDB.
+
+Pour cela, j'ai utilisé Docker Compose afin de gérer les deux services :
+
+- Flask pour l'application web.
+- MongoDB pour la base de données.
+
+## Configuration
+
+Le fichier `docker-compose.yml` permet de lancer les deux services ensemble.
+
+J'ai également mis en place :
+
+- Des variables d'environnement pour la connexion à MongoDB.
+- Un volume pour conserver les données de la base.
+- Un healthcheck pour vérifier que MongoDB est opérationnel.
+- Une dépendance entre Flask et MongoDB afin que Flask attende que la base de données soit prête.
+
+## Vérification
+
+Les deux services sont lancés avec :
 
 ```bash
-docker stop flask-container
-docker rm flask-container
+docker compose up --build -d
 ```
 
-## 8. Gestion du code avec Git
+L'application Flask est accessible à l'adresse :
 
-Le projet est versionné avec Git et hébergé sur GitHub.
+http://localhost:5000
 
-Pour envoyer les modifications :
+J'ai également ajouté une route `/db-check` permettant de vérifier la connexion à MongoDB :
 
-```bash
-git add .
-git commit -m "Ajout du README"
-git push
-```
+http://localhost:5000/db-check
 
-# TP – Optimisation Docker
+Cette route permet de vérifier que l'application arrive bien à communiquer avec la base de données.
 
-## 1. Objectif du TP
+---
 
-L'objectif de ce TP est de comprendre le fonctionnement de Docker et d'apprendre à optimiser une image Docker afin de réduire sa taille, faciliter son déploiement et améliorer sa maintenance.
+# Partie 5 : Optimisation Docker d'une application Node.js
 
-L'application utilisée est une application Node.js basée sur Express et MongoDB.
+## Objectif
 
-## 2. Optimisations réalisées
+L'objectif de cette partie était d'optimiser progressivement le Dockerfile d'une application Node.js afin de réduire la taille de l'image et d'améliorer sa configuration.
 
-### Étape 1 – Image initiale (Baseline)
+## Optimisations réalisées
 
-L'image initiale utilisait `node:latest`.
+J'ai réalisé plusieurs modifications au cours des différentes étapes :
 
-- Taille disque : 1,88 GB
-- Taille du contenu : 474 MB
+- Réorganisation des instructions du Dockerfile pour améliorer l'utilisation du cache.
+- Mise en place d'un fichier `.dockerignore` afin d'exclure les fichiers inutiles.
+- Remplacement de l'image initiale `node:latest` par `node:22-slim`.
+- Utilisation de `npm ci` pour installer les dépendances.
+- Passage à `node:22-alpine` pour réduire davantage la taille de l'image.
+- Mise en place d'un multi-stage build.
+- Suppression des dépendances de développement dans l'image finale.
+- Utilisation de `NODE_ENV=production`.
+- Utilisation de l'utilisateur non-root `node`.
 
-Cette version sert de référence pour comparer les optimisations.
+## Comparaison des tailles
 
-### Étape 2 – Organisation du Dockerfile
-
-Les instructions `COPY package*.json ./` et `RUN npm install` ont été placées avant `COPY . .` afin de favoriser la réutilisation du cache Docker.
-
-Un fichier `.dockerignore` a également été créé pour exclure :
-- `node_modules`
-- `.git`
-- `npm-debug.log`
-
-Résultat : cette première version n'a pas réduit la taille de l'image.
-
-### Étape 3 – Utilisation de node:22-slim
-
-L'image de base a été remplacée par `node:22-slim`.
-
-Cette version utilise une image Node.js plus légère que l'image initiale.
-
-### Étape 4 – Utilisation de npm ci
-
-La commande `npm install` a été remplacée par `npm ci`, qui s'appuie sur le fichier `package-lock.json`.
-
-Le script `npm run build` a été supprimé, car il ne réalisait aucune compilation : il affichait simplement un message.
-
-Résultat :
-- Taille disque : 358 MB
-- Taille du contenu : 86 MB
-
-### Étape 5 – Utilisation de node:22-alpine
-
-L'image de base a été remplacée par `node:22-alpine`, une distribution Linux légère.
-
-Résultat :
-- Taille disque : 271 MB
-- Taille du contenu : 67,5 MB
-
-### Étape 6 – Multi-stage build
-
-Un Dockerfile multi-stage a été mis en place avec deux étapes :
-- Une première étape pour installer les dépendances.
-- Une deuxième étape pour créer l'image finale avec uniquement les dépendances de production et les fichiers nécessaires à l'exécution.
-
-La commande `npm ci --omit=dev` permet d'exclure les dépendances de développement, notamment `nodemon`.
-
-Résultat :
-- Taille disque : 266 MB
-- Taille du contenu : 66,6 MB
-
-## 3. Tableau comparatif
-
-| Version | Taille disque | Taille du contenu |
+| Étape | Taille disque | Taille du contenu |
 |---|---:|---:|
-| Baseline | 1,88 GB | 474 MB |
-| Optimisation 1 | 1,89 GB | 476 MB |
-| Optimisation 2 | 1,89 GB | 476 MB |
-| Optimisation 3 | 358 MB | 86 MB |
-| Optimisation 4 | 271 MB | 67,5 MB |
-| Optimisation 5 | 266 MB | 66,6 MB |
+| Version initiale | 1,88 GB | 474 MB |
+| Organisation du Dockerfile | 1,89 GB | 476 MB |
+| Optimisation intermédiaire | 1,89 GB | 476 MB |
+| `node:22-slim` | 358 MB | 86 MB |
+| `node:22-alpine` | 271 MB | 67,5 MB |
+| Multi-stage build | 266 MB | 66,6 MB |
 
-## 4. Résultat final
+La taille du contenu est passée de 474 MB à 66,6 MB.
 
-La taille du contenu de l'image est passée de 474 MB à 66,6 MB, soit une réduction d'environ 85,9 %.
+Les optimisations les plus importantes ont été le choix d'une image de base plus légère et la réduction des dépendances présentes dans l'image finale.
 
-L'application a été testée avec les différentes versions et fonctionne correctement.
-
-## 5. Conclusion
-
-Ce TP m'a permis de découvrir plusieurs bonnes pratiques pour optimiser les images Docker : utiliser un fichier `.dockerignore`, organiser les instructions pour profiter du cache, choisir une image de base légère et utiliser un multi-stage build.
-
-Les mesures montrent que le choix de l'image de base et la réduction des dépendances présentes dans l'image finale ont contribué à diminuer fortement sa taille.
+---

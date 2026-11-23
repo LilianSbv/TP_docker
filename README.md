@@ -1,4 +1,4 @@
-# TP Docker
+# TP 1 - Docker
 
 # Partie 1 : Manipulation de base de Docker
 
@@ -105,8 +105,9 @@ http://localhost:5000/db-check
 Cette route permet de vérifier que l'application arrive bien à communiquer avec la base de données.
 
 ---
+# TP 2 - Optimisation Docker
 
-# Partie 5 : Optimisation Docker d'une application Node.js
+# Optimisation Docker d'une application Node.js
 
 ## Objectif
 
